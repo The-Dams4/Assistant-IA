@@ -73,7 +73,13 @@ with st.sidebar:
 st.title("Assistant IA")
 st.markdown("##### Vos documents, vos réponses.")
 
+mot_de_passe = st.text_input("Mot de passe de démonstration", type="password")
+if mot_de_passe != st.secrets["APP_PASSWORD"]:
+    st.caption("Accès réservé : saisissez le mot de passe qui vous a été communiqué.")
+    st.stop()
+
 fichier = st.file_uploader("Déposez votre document", type="pdf")
+
 
 if fichier is None:
     st.caption("Commencez par déposer un document PDF : notice, procédure, règlement, contrat…")

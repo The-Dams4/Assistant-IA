@@ -22,4 +22,4 @@ Python · Streamlit · pypdf · sentence-transformers (embeddings) · API Claude
 3. Lancer : `streamlit run app.py`
 
 ## Auteur
-Damien — 17 ans de maintenance technique sur le terrain, aujourd'hui spécialisé dans l'intégration de l'IA pour les PME : diagnostic d'abord, outil concret ensuite.
+DY Solutions — Iintégration de l'IA pour les PME : diagnostic d'abord, outil concret ensuite.

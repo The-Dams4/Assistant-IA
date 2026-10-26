@@ -12,7 +12,7 @@ client = Anthropic()
 
 @st.cache_resource
 def charger_modele():
-    return SentenceTransformer("all-MiniLM-L6-v2")
+    return SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
 
 modele = charger_modele()
 
@@ -66,7 +66,7 @@ with st.sidebar:
     st.divider()
     st.caption("Les réponses s'appuient uniquement sur vos documents. Si l'information n'y figure pas, l'assistant le dit.")
     st.divider()
-    st.markdown("**Damien** · Intégration IA pour PME")
+    st.markdown("**DY Solutions** · IA et Automatisation pour artisans et PME")
 
 
 # --- Page principale ---
@@ -96,7 +96,7 @@ else:
             st.warning("Écrivez d'abord une question.")
         else:
             with st.spinner("Recherche dans le document..."):
-                extraits = trouver_morceaux(question, morceaux, 3)
+                extraits = trouver_morceaux(question, morceaux, 4)
                 reponse = demander_claude(question, extraits)
 
             st.subheader("Réponse")

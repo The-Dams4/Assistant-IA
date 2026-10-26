@@ -106,5 +106,5 @@ else:
             st.subheader("Sources")
             for numero, extrait in enumerate(extraits, start=1):
                 with st.expander(f"Extrait {numero}"):
-                    st.text(extrait)
+                      st.write(" ".join(extrait.split()))                 
                     

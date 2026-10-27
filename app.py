@@ -21,7 +21,8 @@ def lire_pdf(fichier):
     lecteur = PdfReader(fichier)
     texte = ""
     for page in lecteur.pages:
-        texte += page.extract_text()
+        texte += page.extract_text() + "\n"
+    texte = texte.replace("\t", " ")
     return texte
 
 
@@ -29,6 +30,50 @@ def decouper(texte, taille, chevauchement):
     morceaux = []
     for debut in range(0, len(texte), taille - chevauchement):
         morceaux.append(texte[debut:debut + taille])
+    return morceaux
+
+
+def est_un_titre(ligne):
+    return ligne[0:1].isdigit() and ligne[1:3] == ". " and len(ligne.strip()) > 3
+
+
+def decouper_par_sections(texte):
+    lignes = texte.split("\n")
+    sections = []
+    section_en_cours = ""
+    for ligne in lignes:
+        if est_un_titre(ligne) and section_en_cours != "":
+            sections.append(section_en_cours)
+            section_en_cours = ""
+        section_en_cours += ligne + "\n"
+    sections.append(section_en_cours)
+    return sections
+
+
+def redecouper_section(section, taille_max):
+    lignes = section.split("\n")
+    titre = lignes[0]
+    morceaux = []
+    morceau_en_cours = ""
+    for ligne in lignes:
+        if len(morceau_en_cours) + len(ligne) > taille_max and morceau_en_cours != "":
+            morceaux.append(morceau_en_cours)
+            morceau_en_cours = titre + " (suite)\n"
+        morceau_en_cours += ligne + "\n"
+    morceaux.append(morceau_en_cours)
+    return morceaux
+
+
+def decouper_document(texte):
+    sections = decouper_par_sections(texte)
+    if len(sections) < 3:
+        return decouper(texte, 1000, 200)
+    morceaux = []
+    for section in sections:
+        if len(section) <= 1200:
+            morceaux.append(section)
+        else:
+            morceaux += redecouper_section(section, 800)
     return morceaux
 
 
@@ -49,7 +94,7 @@ def demander_claude(question, extraits):
     reponse = client.messages.create(
         model="claude-sonnet-4-5",
         max_tokens=800,
-        system="Tu es un assistant qui répond à partir des documents fournis. Si la réponse n'est pas dans les extraits, dis-le.",
+        system="Tu es un assistant qui répond à partir des documents fournis. Si la réponse n'est pas dans les extraits, dis-le. N'utilise pas de titres Markdown (#) : mets seulement les mots importants en gras.",
         messages=[{"role": "user", "content": prompt}]
     )
     return reponse.content[0].text
@@ -86,7 +131,7 @@ if fichier is None:
 else:
     with st.spinner("Lecture du document..."):
         texte = lire_pdf(fichier)
-        morceaux = decouper(texte, 1000, 200)
+        morceaux = decouper_document(texte)
     st.success(f"« {fichier.name} » chargé · {len(morceaux)} passages analysés")
 
     question = st.text_input("Votre question", placeholder="Ex. : quelle est la procédure en cas de panne ?")
@@ -106,5 +151,4 @@ else:
             st.subheader("Sources")
             for numero, extrait in enumerate(extraits, start=1):
                 with st.expander(f"Extrait {numero}"):
-                      st.write(" ".join(extrait.split()))                 
-                    
+                    st.write(" ".join(extrait.split()))

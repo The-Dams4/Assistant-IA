@@ -5,3 +5,4 @@ pypdf
 sentence-transformers
 python-dotenv
 anthropic
+python-docx

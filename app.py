@@ -1,5 +1,7 @@
 import streamlit as st
 from pypdf import PdfReader
+from docx import Document
+from docx.table import Table
 from sentence_transformers import SentenceTransformer, util
 from dotenv import load_dotenv
 from anthropic import Anthropic
@@ -32,6 +34,20 @@ def decouper(texte, taille, chevauchement):
         morceaux.append(texte[debut:debut + taille])
     return morceaux
 
+
+def lire_word(fichier):
+    doc = Document(fichier)
+    texte = ""
+    for element in doc.iter_inner_content():
+        if isinstance(element, Table):
+            for ligne in element.rows:
+                texte_ligne = ""
+                for cellule in ligne.cells:
+                    texte_ligne += cellule.text + " | "
+                texte += texte_ligne + "\n"
+        else:
+            texte += element.text + "\n"
+    return texte
 
 def est_un_titre(ligne):
     return ligne[0:1].isdigit() and ligne[1:3] == ". " and len(ligne.strip()) > 3
@@ -123,14 +139,17 @@ if mot_de_passe != st.secrets["APP_PASSWORD"]:
     st.caption("Accès réservé : saisissez le mot de passe qui vous a été communiqué.")
     st.stop()
 
-fichier = st.file_uploader("Déposez votre document", type="pdf")
+fichier = st.file_uploader("Déposez votre document", type=["pdf", "docx"])
 
 
 if fichier is None:
-    st.caption("Commencez par déposer un document PDF : notice, procédure, règlement, contrat…")
+    st.caption("Commencez par déposer un document PDF ou Word : notice, procédure, règlement, contrat…")
 else:
     with st.spinner("Lecture du document..."):
-        texte = lire_pdf(fichier)
+        if fichier.name.endswith(".docx"):
+            texte = lire_word(fichier)
+        else:
+            texte = lire_pdf(fichier)
         morceaux = decouper_document(texte)
     st.success(f"« {fichier.name} » chargé · {len(morceaux)} passages analysés")
 
